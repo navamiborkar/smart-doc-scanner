@@ -10,17 +10,19 @@ from PyPDF2 import PdfReader
 from pdf2image import convert_from_path
 from nltk.corpus import stopwords
 
-# ✅ Set path for Tesseract (Windows)
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-
+# ---------- Flask Config ----------
 app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
 DB_NAME = "documents.db"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# Download stopwords (only once)
-nltk.download("stopwords")
-stop_words = set(stopwords.words("english"))
+# ---------- NLTK Stopwords Setup ----------
+# Try to load stopwords; download only if missing
+try:
+    stop_words = set(stopwords.words("english"))
+except LookupError:
+    nltk.download("stopwords")
+    stop_words = set(stopwords.words("english"))
 
 # ---------- Database Setup ----------
 def init_db():
@@ -69,18 +71,21 @@ def extract_text_from_pdf(filepath):
     text = ""
 
     try:
-        # Step 1: Try direct extraction
+        # Step 1: Try direct extraction (text-based PDFs)
         reader = PdfReader(filepath)
         for page in reader.pages:
             extracted = page.extract_text()
             if extracted:
                 text += extracted + "\n"
 
-        # Step 2: If no text found, OCR
+        # Step 2: If no text found, fallback to OCR (scanned PDFs)
         if not text.strip():
-            pages = convert_from_path(filepath)
-            for page in pages:
-                text += pytesseract.image_to_string(page)
+            try:
+                pages = convert_from_path(filepath)
+                for page in pages:
+                    text += pytesseract.image_to_string(page)
+            except Exception:
+                text += "\n⚠️ OCR not available in hosted version."
 
     except Exception as e:
         return f"❌ Error extracting PDF: {e}"
@@ -167,4 +172,5 @@ def view_doc(doc_id):
 if __name__ == "__main__":
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     init_db()
-    app.run(debug=True)
+    # host='0.0.0.0' ensures Flask binds properly on Render
+    app.run(host="0.0.0.0", port=5000, debug=True)
