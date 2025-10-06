@@ -172,5 +172,6 @@ def view_doc(doc_id):
 if __name__ == "__main__":
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     init_db()
-    # host='0.0.0.0' ensures Flask binds properly on Render
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # ✅ Use Render’s port if available; else default to 5000 for local runs
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
