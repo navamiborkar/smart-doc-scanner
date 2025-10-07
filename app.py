@@ -305,15 +305,77 @@ def view_doc(doc_id):
     doc = c.fetchone()
     conn.close()
 
-    if doc:
-        return f"""
-        <h2>File: {doc[0]}</h2>
-        <h3>Category: {doc[2]}</h3>
-        <pre>{doc[1]}</pre>
-        <a href='{url_for('dashboard')}'>⬅️ Back to Dashboard</a>
-        """
-    else:
-        return "❌ Document not found"
+    if not doc:
+        return "<h3 class='text-danger text-center mt-5'>❌ Document not found</h3>"
+
+    filename, extracted_text, category = doc
+
+    color_map = {
+        "Bill": "primary",
+        "ID Document": "warning",
+        "Notes": "success",
+        "Certificate": "info",
+        "Uncategorized": "secondary"
+    }
+    badge_color = color_map.get(category, "secondary")
+
+    return f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>View Document - {filename}</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+        <style>
+            body {{
+                background-color: #f8f9fa;
+                font-family: 'Segoe UI', sans-serif;
+                padding: 40px;
+            }}
+            .viewer-card {{
+                background: #fff;
+                border-radius: 15px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                padding: 30px;
+                max-width: 1000px;
+                margin: auto;
+            }}
+            pre {{
+                background: #f1f3f5;
+                border-radius: 10px;
+                padding: 20px;
+                max-height: 600px;
+                overflow-y: auto;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }}
+            .btn {{
+                border-radius: 10px;
+            }}
+        </style>
+    </head>
+    <body>
+
+        <div class="viewer-card">
+            <h2 class="text-primary">📄 {filename}</h2>
+            <p><span class="badge bg-{badge_color} fs-6">{category}</span></p>
+
+            <h5 class="mt-4 mb-2 text-secondary">Extracted Text:</h5>
+            <pre>{extracted_text}</pre>
+
+            <div class="text-center mt-4">
+                <a href='{url_for('dashboard')}' class="btn btn-outline-secondary">⬅️ Back to Dashboard</a>
+                <a href='/' class="btn btn-primary">📤 Upload New Document</a>
+            </div>
+        </div>
+
+    </body>
+    </html>
+    """
+
 
 # ---------- Main ----------
 if __name__ == "__main__":
