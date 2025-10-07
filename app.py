@@ -214,11 +214,88 @@ def dashboard():
     docs = c.fetchall()
     conn.close()
 
-    html = "<h1>📂 Document Dashboard</h1><ul>"
+    # Generate table rows dynamically
+    rows_html = ""
+    color_map = {
+        "Bill": "primary",
+        "ID Document": "warning",
+        "Notes": "success",
+        "Certificate": "info",
+        "Uncategorized": "secondary"
+    }
+
     for doc in docs:
-        html += f"<li>{doc[1]} — <b>{doc[2]}</b> [<a href='/view/{doc[0]}'>View</a>]</li>"
-    html += "</ul><a href='/'>⬅️ Upload More</a>"
-    return html
+        color = color_map.get(doc[2], "secondary")
+        rows_html += f"""
+        <tr>
+            <td>{doc[0]}</td>
+            <td>{doc[1]}</td>
+            <td><span class='badge bg-{color}'>{doc[2]}</span></td>
+            <td><a href='/view/{doc[0]}' class='btn btn-sm btn-outline-primary'>View</a></td>
+        </tr>
+        """
+
+    return f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document Dashboard</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            body {{
+                background-color: #f8f9fa;
+                font-family: 'Segoe UI', sans-serif;
+                padding: 40px;
+            }}
+            .dashboard-card {{
+                background: #fff;
+                border-radius: 15px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                padding: 30px;
+                max-width: 1000px;
+                margin: auto;
+            }}
+            table {{
+                border-radius: 10px;
+                overflow: hidden;
+            }}
+            th {{
+                background-color: #007bff;
+                color: white;
+            }}
+            .btn {{
+                border-radius: 8px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="dashboard-card">
+            <h2 class="text-center text-primary mb-4">📂 Document Dashboard</h2>
+
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>File Name</th>
+                        <th>Category</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows_html if docs else "<tr><td colspan='4' class='text-center text-muted'>No documents uploaded yet.</td></tr>"}
+                </tbody>
+            </table>
+
+            <div class="text-center mt-4">
+                <a href="/" class="btn btn-primary">⬆️ Upload More</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
 
 @app.route('/view/<int:doc_id>')
 def view_doc(doc_id):
