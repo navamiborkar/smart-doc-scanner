@@ -9,6 +9,7 @@ import nltk
 from PyPDF2 import PdfReader
 from pdf2image import convert_from_path
 from nltk.corpus import stopwords
+from werkzeug.utils import secure_filename   # ✅ Added import
 
 # ---------- Flask Config ----------
 app = Flask(__name__)
@@ -100,15 +101,22 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
-        return "No file uploaded"
-    
+        return "❌ No file uploaded"
+
     file = request.files['file']
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    file.save(filepath)
+    filename = secure_filename(file.filename)
+
+    # ✅ Ensure a valid filename is provided
+    if not filename:
+        return "❌ No file selected or invalid filename"
+
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 
     try:
+        file.save(filepath)
+
         # PDF or Image detection
-        if file.filename.lower().endswith(".pdf"):
+        if filename.lower().endswith(".pdf"):
             text = extract_text_from_pdf(filepath)
         else:
             text = pytesseract.image_to_string(Image.open(filepath))
@@ -120,8 +128,10 @@ def upload_file():
         # Save to DB
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
-        c.execute("INSERT INTO documents (filename, extracted_text, category) VALUES (?, ?, ?)",
-                  (file.filename, text, category))
+        c.execute(
+            "INSERT INTO documents (filename, extracted_text, category) VALUES (?, ?, ?)",
+            (filename, text, category)
+        )
         conn.commit()
         conn.close()
 
