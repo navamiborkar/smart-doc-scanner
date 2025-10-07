@@ -139,12 +139,72 @@ def upload_file():
         return f"❌ Error processing file: {e}"
 
     return f"""
-    <h2>Extracted Text:</h2>
-    <pre>{text}</pre>
-    <h2>Predicted Category:</h2>
-    <p>{category}</p>
-    <a href='{url_for('dashboard')}'>📂 Go to Dashboard</a>
-    """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extraction Result</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {{
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 30px;
+        }}
+        .result-card {{
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 900px;
+            margin: auto;
+        }}
+        pre {{
+            background: #f1f3f5;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }}
+        h2 {{
+            color: #007bff;
+            font-weight: 600;
+        }}
+        h3 {{
+            color: #343a40;
+            margin-top: 20px;
+        }}
+        .btn {{
+            border-radius: 10px;
+            margin-top: 20px;
+        }}
+    </style>
+</head>
+<body>
+
+    <div class="result-card">
+        <h2>📄 Extracted Text</h2>
+        <pre>{text}</pre>
+
+        <h3>🧠 Predicted Category:</h3>
+        <p><span class="badge bg-primary fs-6">{category}</span></p>
+
+        <div class="mt-4">
+            <a href='{url_for('dashboard')}' class="btn btn-outline-secondary">📂 Go to Dashboard</a>
+            <a href='/' class="btn btn-primary">⬅️ Upload Another</a>
+        </div>
+    </div>
+
+</body>
+</html>
+"""
+
 
 @app.route('/dashboard')
 def dashboard():
